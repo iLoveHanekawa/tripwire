@@ -1,8 +1,9 @@
 {
-  "name": "tripwire",
+  "name": "@ilovehanekawa/tripwire",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Roles and permissions for Node.js applications.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -27,5 +28,16 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iLoveHanekawa/tripwire.git"
+  },
+  "author": "iLoveHanekawa",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/iLoveHanekawa/tripwire/issues"
+  },
+  "homepage": "https://github.com/iLoveHanekawa/tripwire#readme"
 }
+
