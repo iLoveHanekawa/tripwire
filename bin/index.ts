@@ -29,6 +29,14 @@ const createSeederFile = async() => {
                         permissions: true
                     }
                 });
+                await prisma.roleHasPermission.createMany({
+                    data: newRole.permissions.map((permission) => {
+                        return {
+                            roleId: newRole.id,
+                            permissionId: permission.id
+                        };
+                    })
+                });
                 return newRole;
             });
             const addedData = await Promise.all(promises);

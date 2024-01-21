@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { TripwireSeederRole, rolesAndPermissions } from './seed';
+import { TripwireSeederRole, rolesAndPermissions } from '../tripwire/seed.js';
 
 const prisma = new PrismaClient();
 
@@ -16,6 +16,15 @@ async function main() {
             include: {
                 permissions: true
             }
+        });
+        
+        await prisma.roleHasPermission.createMany({
+            data: newRole.permissions.map((permission) => {
+                return {
+                    roleId: newRole.id,
+                    permissionId: permission.id
+                }
+            })
         });
         return newRole;
     });

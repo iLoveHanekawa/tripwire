@@ -8,13 +8,11 @@ datasource db {
 }
 
 model users {
-  id     Int      @id @default(autoincrement())
-  name   String?  @db.VarChar(255)
-  email  String?  @db.VarChar(255)
-  age    Int?
-  gpa    Decimal?
-  Role   Role?    @relation(fields: [roleId], references: [id])
-  roleId Int?
+  id    Int      @id @default(autoincrement())
+  name  String?  @db.VarChar(255)
+  email String?  @db.VarChar(255)
+  age   Int?
+  gpa   Decimal?
 }
 
 model Role {
@@ -22,10 +20,8 @@ model Role {
   name              String              @unique
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  userss            users[] // Many-to-many relationship with users
-  permissions       Permission[] // Many-to-many relationship with permissions
   ModelHasRole      ModelHasRole[]
-  RoleHasPermission RoleHasPermission[]
+  permissions RoleHasPermission[]
 }
 
 model Permission {
@@ -33,9 +29,8 @@ model Permission {
   name               String               @unique
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  roles              Role[] // Many-to-many relationship with roles
   ModelHasPermission ModelHasPermission[]
-  RoleHasPermission  RoleHasPermission[]
+  roles  RoleHasPermission[]
 }
 
 model ModelHasRole {
