@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "sync": "npm link @ilovehanekawa/tripwire"
   },
   "author": "iLoveHanekawa",
   "license": "GPL-3.0",
   "dependencies": {
+    "@prisma/client": "^5.8.1",
     "express": "^4.18.2"
   },
   "devDependencies": {

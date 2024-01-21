@@ -1,4 +1,7 @@
 {
+  "bin": {
+    "tripwire": "bin/index.js"
+  },
   "name": "@ilovehanekawa/tripwire",
   "private": true,
   "version": "0.0.0",
@@ -12,11 +15,13 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/yargs": "^17.0.32",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
