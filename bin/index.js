@@ -46,17 +46,19 @@ const createSeederContentFile = async () => {
         console.log('Creating seeder configuration file.');
         const seederContentFilePath = process.cwd() + '\\tripwire\\seed.js';
         promises.mkdir(normalize(process.cwd() + '\\tripwire'));
-        const seederFileContent = `export type TripwireSeederRole = { role: { name: string, permissions: string[] }}
-
-        export const rolesAndPermissions: TripwireSeederRole[] = [
+        const seederFileContent = `"use strict";
+        Object.defineProperty(exports, "__esModule", { value: true });
+        exports.rolesAndPermissions = void 0;
+        exports.rolesAndPermissions = [
             {
                 role: {
                     name: 'example_role',
                     permissions: ['example_permission_A', 'example_permission_B']
                 }
             }
-        ];`;
-        promises.writeFile(seederContentFilePath, seederFileContent, { encoding: 'utf-8', flag: 'a+' });
+        ];
+        `;
+        promises.writeFile(normalize(seederContentFilePath), seederFileContent, { encoding: 'utf-8', flag: 'a+' });
     }
     catch (error) {
         console.log('Failed to create or write to tripwire seed configuration file.');

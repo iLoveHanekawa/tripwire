@@ -1,16 +1,16 @@
-import { PrismaClient } from '@prisma/client';
-import { TripwireSeederRole, rolesAndPermissions } from '../tripwire/seed';
-
-const prisma = new PrismaClient();
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const seed_1 = require("./seed");
+const prisma = new client_1.PrismaClient();
 async function main() {
-    const promises = rolesAndPermissions.map(async ({ role }: TripwireSeederRole, index: number) => {
+    const promises = seed_1.rolesAndPermissions.map(async ({ role }, index) => {
         const { name, permissions } = role;
         const newRole = await prisma.role.create({
             data: {
                 name,
                 permissions: {
-                    create: permissions.map((permission, index) => { return { name: permission }})
+                    create: permissions.map((permission, index) => { return { name: permission }; })
                 }
             },
             include: {
@@ -22,5 +22,4 @@ async function main() {
     const addedData = await Promise.all(promises);
     console.log('Roles added: ' + JSON.stringify(addedData, null, 2));
 }
-
 main();
