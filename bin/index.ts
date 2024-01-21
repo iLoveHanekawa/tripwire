@@ -1,55 +1,64 @@
 #!/usr/bin/env node
 import yargs, { Argv } from 'yargs';
-import { join, resolve, normalize, relative } from 'path';
+import { normalize } from 'path';
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { promises } from 'fs'
+import { EOL } from 'os';
+
+const fileExists = async (filePath: string) => {
+    try {
+        await promises.access(filePath);
+        return true;
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 const execPromise = promisify(exec);
 
-const prismaFormat = async() => {
-    const { stdout, stderr } = await execPromise('npx prisma format');
-    console.log(stdout);
-    console.log(stderr);
+const runPrismaFormat = async() => {
+    try {
+        const { stdout, stderr } = await execPromise('npx prisma format');
+        console.log(stdout);
+        console.log(stderr);
+    } catch (error) {
+        console.log('Something went wrong.', error)        
+    }
 }
 
-const prismaMigrate = async() => {
-    const { stdout, stderr } = await execPromise('npx prisma migrate');
-    console.log(stdout);
-    console.log(stderr);
+const runPrismaMigrate = async() => {
+    try {
+        const { stdout, stderr } = await execPromise('npx prisma migrate');
+        console.log(stdout);
+        console.log(stderr);
+    } catch (error) {
+        console.log('Something went wrong.', error);        
+    }
 }
 
 const processArgs = async () => {
 
-    function resolveAppRoot(fullpath: string, moduleSubDirectory: string) {
-        // Normalize paths to handle different path separators
-        fullpath = normalize(fullpath);
-        moduleSubDirectory = normalize(moduleSubDirectory);
-    
-        // Resolve the full path and bad destination
-        const resolvedFullpath = resolve(fullpath);
-        const resolvedmoduleSubDirectory = resolve(moduleSubDirectory);
-    
-        // Check if the bad destination is a subdirectory of the full path
-        if (resolvedmoduleSubDirectory.endsWith(resolvedFullpath)) {
-            // Calculate the relative path from full path to bad destination
-            const relativePath = relative(resolvedFullpath, resolvedmoduleSubDirectory);
-    
-            // Construct the resulting path by removing the relative path from the full path
-            const resultingPath = join(resolvedFullpath, '..', relativePath);
-            
-            // Normalize the resulting path to handle any remaining '..' or '.' segments
-            return normalize(resultingPath);
-        } else {
-            // If bad destination is not a subdirectory, return the original full path
-            return resolvedFullpath;
-        }
-    }
-
     try {
         const { argv } = yargs(process.argv) as Argv<{ model: string }>;
         const args = await argv;
+        const schemaPath = process.cwd() + '\\prisma\\schema.prisma';
+        const predicate = await fileExists(normalize(schemaPath));
+        if(predicate) {
+            await runPrismaFormat();
+            const content = await promises.readFile(schemaPath, { encoding: 'utf8', flag: 'r'});
+            console.log(content);
+        }
+        else {
+
+        }
         // prismaFormat();
-        console.log({model: args.model, other: args, path: resolveAppRoot(args._[1] as string, args.$0)});
+        // console.log({
+        //     model: args.model, 
+        //     other: args, 
+        //     path: resolveAppRoot(),
+        //     cwd: process.cwd()
+        // });
     } catch (error) {
         console.log(error);
     }
