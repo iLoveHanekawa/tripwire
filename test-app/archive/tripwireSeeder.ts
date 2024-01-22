@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { TripwireSeederRole, rolesAndPermissions } from '../tripwire/seed';
+import { TripwireSeederRole, rolesAndPermissions } from '../tripwire/seed.js';
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,15 @@ async function main() {
             data: {
                 name,
                 permissions: {
-                    create: permissions.map((permission, index) => { return { name: permission }})
+                    create: permissions.map(permission => {
+                        return {
+                            permission: {
+                                create: {
+                                    name: permission
+                                }
+                            }
+                        }
+                    })
                 }
             },
             include: {
@@ -20,7 +28,7 @@ async function main() {
         return newRole;
     });
     const addedData = await Promise.all(promises);
-    console.log('Roles added: ' + JSON.stringify(addedData, null, 2));
+    console.log('Successfully seeded the database.');
 }
 
 main();

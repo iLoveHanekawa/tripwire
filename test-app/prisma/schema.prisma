@@ -8,64 +8,54 @@ datasource db {
 }
 
 model users {
-  id     Int      @id @default(autoincrement())
-  name   String?  @db.VarChar(255)
-  email  String?  @db.VarChar(255)
-  age    Int?
-  gpa    Decimal?
-  Role   Role?    @relation(fields: [roleId], references: [id])
-  roleId Int?
+  id    BigInt   @id @default(autoincrement())
+  name  String?  @db.VarChar(255)
+  email String?  @db.VarChar(255)
+  age   Int?
+  gpa   Decimal?
 }
 
 model Role {
-  id                Int                 @id @default(autoincrement())
-  name              String              @unique
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  userss            users[] // Many-to-many relationship with users
-  permissions       Permission[] // Many-to-many relationship with permissions
-  ModelHasRole      ModelHasRole[]
-  RoleHasPermission RoleHasPermission[]
+  id          BigInt              @id @default(autoincrement())
+  name        String              @unique @db.VarChar(255)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  models      ModelHasRoles[]
+  permissions RoleHasPermission[]
 }
 
 model Permission {
-  id                 Int                  @id @default(autoincrement())
-  name               String               @unique
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  roles              Role[] // Many-to-many relationship with roles
-  ModelHasPermission ModelHasPermission[]
-  RoleHasPermission  RoleHasPermission[]
+  id        BigInt               @id @default(autoincrement())
+  name      String               @unique @db.VarChar(255)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  models    ModelHasPermission[]
+  roles     RoleHasPermission[]
 }
 
-model ModelHasRole {
-  modelId Int
-  roleId  Int
+model ModelHasRoles {
+  modelId   BigInt
+  modelType String @db.VarChar(255)
+  roleId    BigInt
+  role      Role   @relation(fields: [roleId], references: [id])
 
-  model String // You may need to adjust this depending on your specific models
-  role  Role   @relation(fields: [roleId], references: [id])
-
-  @@id([modelId, roleId])
+  @@id([roleId, modelId, modelType])
 }
 
-// ModelHasPermissions
 model ModelHasPermission {
-  modelId      Int
-  permissionId Int
+  modelId      BigInt
+  modelType    String     @db.VarChar(255)
+  permissionId BigInt
+  permission   Permission @relation(fields: [permissionId], references: [id])
 
-  model      String // You may need to adjust this depending on your specific models
-  permission Permission @relation(fields: [permissionId], references: [id])
-
-  @@id([modelId, permissionId])
+  @@id([modelId, modelType, permissionId])
 }
 
-// RoleHasPermissions
 model RoleHasPermission {
-  roleId       Int
-  permissionId Int
-
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  roleId       BigInt
+  permissionId BigInt
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
 
   @@id([roleId, permissionId])
 }

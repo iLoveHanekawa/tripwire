@@ -1,3 +1,3 @@
 # Tripwire
 
-Spatie inspired Node.js library for adding roles and permissions using Prisma. 
+Spatie inspired Prisma extension for implementing Roles and Permissions in Node.js

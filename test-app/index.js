@@ -1,17 +1,22 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const app = (0, express_1.default)();
-const client_1 = require("@prisma/client");
-const prismaClient = new client_1.PrismaClient();
-app.get('/', async (req, res) => {
-    res.json({
-        success: true
+import express from 'express';
+const app = express();
+import { PrismaClient } from '@prisma/client';
+import { createTripwireExtension } from './tripwire/extension.js';
+const prismaClient = new PrismaClient().$extends(createTripwireExtension);
+let user = await prismaClient.users.findUnique({ where: { id: 1 } });
+if (!user) {
+    user = await prismaClient.users.create({
+        data: {
+            age: 4,
+            email: 'xyz@gmail.com',
+            gpa: 0,
+            name: 'arjun'
+        }
     });
-});
-app.listen(3000, () => {
-    console.log('server listening at http://localhost:3000');
-});
+}
+await prismaClient.users.removeRole('admin', { id: user.id });
+let result = await prismaClient.users.hasRole('admin', { id: user.id });
+console.log(result);
+await prismaClient.users.assignRole('admin', { id: user.id });
+result = await prismaClient.users.hasRole('admin', { id: user.id });
+console.log(result);
