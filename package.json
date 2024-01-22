@@ -3,8 +3,8 @@
     "tripwire": "bin/index.js"
   },
   "name": "@ilovehanekawa/tripwire",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.0.1",
   "type": "module",
   "description": "Roles and permissions for Node.js applications.",
   "scripts": {
