@@ -1,16 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
-const seed_1 = require("./seed");
-const prisma = new client_1.PrismaClient();
+import { PrismaClient } from '@prisma/client';
+import { rolesAndPermissions } from '../tripwire/seed.js';
+const prisma = new PrismaClient();
 async function main() {
-    const promises = seed_1.rolesAndPermissions.map(async ({ role }, index) => {
+    const promises = rolesAndPermissions.map(async ({ role }, index) => {
         const { name, permissions } = role;
         const newRole = await prisma.role.create({
             data: {
                 name,
                 permissions: {
-                    create: permissions.map((permission, index) => { return { name: permission }; })
+                    create: permissions.map(permission => {
+                        return {
+                            permission: {
+                                create: {
+                                    name: permission
+                                }
+                            }
+                        };
+                    })
                 }
             },
             include: {
@@ -20,6 +26,6 @@ async function main() {
         return newRole;
     });
     const addedData = await Promise.all(promises);
-    console.log('Roles added: ' + JSON.stringify(addedData, null, 2));
+    console.log('Successfully seeded the database.');
 }
 main();

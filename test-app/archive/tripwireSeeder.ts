@@ -10,26 +10,25 @@ async function main() {
             data: {
                 name,
                 permissions: {
-                    create: permissions.map((permission, index) => { return { name: permission }})
+                    create: permissions.map(permission => {
+                        return {
+                            permission: {
+                                create: {
+                                    name: permission
+                                }
+                            }
+                        }
+                    })
                 }
             },
             include: {
                 permissions: true
             }
         });
-        
-        await prisma.roleHasPermission.createMany({
-            data: newRole.permissions.map((permission) => {
-                return {
-                    roleId: newRole.id,
-                    permissionId: permission.id
-                }
-            })
-        });
         return newRole;
     });
     const addedData = await Promise.all(promises);
-    console.log('Roles added: ' + JSON.stringify(addedData, null, 2));
+    console.log('Successfully seeded the database.');
 }
 
 main();
