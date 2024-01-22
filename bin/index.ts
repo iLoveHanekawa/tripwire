@@ -6,41 +6,151 @@ import { promisify } from 'util';
 import { promises } from 'fs';
 import { EOL } from 'os';
 
+const createExtensionFile = async() => {
+    try {
+        console.log('Creating extension file.');
+        const extensionContentFilePath = process.cwd() + '\\tripwire\\extension.js';
+        const extensionContent = `import { Prisma } from "@prisma/client";
+        export const createTripwireExtension = Prisma.defineExtension((client) => {
+            return client.$extends({
+                model: {
+                    users: {
+                        async removeRole(roleName, where) {
+                            const ctx = Prisma.getExtensionContext(this);
+                            const prismaClient = ctx.$parent;
+                            const user = await ctx.findUnique({ where });
+                            const role = await prismaClient.role.findUnique({ where: { name: roleName } });
+                            if (!user) {
+                                console.log('User not found.');
+                                return user;
+                            }
+                            else if (!role) {
+                                console.log('Role not found.');
+                                return role;
+                            }
+                            const predicate = await prismaClient.modelHasRoles.findUnique({ where: {
+                                    roleId_modelId_modelType: {
+                                        roleId: role.id,
+                                        modelId: user.id,
+                                        modelType: 'users'
+                                    }
+                                } });
+                            if (!predicate) {
+                                return true;
+                            }
+                            else {
+                                await prismaClient.modelHasRoles.delete({
+                                    where: {
+                                        roleId_modelId_modelType: {
+                                            modelId: user.id,
+                                            modelType: 'users',
+                                            roleId: 1
+                                        }
+                                    }
+                                });
+                                return true;
+                            }
+                        },
+                        async assignRole(roleName, where) {
+                            const ctx = Prisma.getExtensionContext(this);
+                            const prismaClient = ctx.$parent;
+                            const user = await ctx.findUnique({ where });
+                            const role = await prismaClient.role.findUnique({ where: { name: roleName } });
+                            if (!user) {
+                                console.log('User not found.');
+                                return user;
+                            }
+                            else if (!role) {
+                                console.log('Role not found.');
+                                return role;
+                            }
+                            const predicate = await prismaClient.modelHasRoles.findUnique({ where: {
+                                    roleId_modelId_modelType: {
+                                        roleId: role.id,
+                                        modelId: user.id,
+                                        modelType: 'users'
+                                    }
+                                } });
+                            if (!predicate) {
+                                await prismaClient.modelHasRoles.create({
+                                    data: {
+                                        modelId: user.id,
+                                        modelType: 'users',
+                                        roleId: role.id
+                                    }
+                                });
+                                return true;
+                            }
+                            else {
+                                return true;
+                            }
+                        },
+                        async hasRole(roleName, where) {
+                            const ctx = Prisma.getExtensionContext(this);
+                            const prismaClient = ctx.$parent;
+                            const user = await ctx.findUnique({ where });
+                            const role = await prismaClient.role.findUnique({ where: { name: roleName } });
+                            if (!user) {
+                                console.log('User not found.');
+                                return user;
+                            }
+                            else if (!role) {
+                                console.log('Role not found.');
+                                return role;
+                            }
+                            const entry = await prismaClient.modelHasRoles.findUnique({ where: {
+                                    roleId_modelId_modelType: {
+                                        roleId: role.id,
+                                        modelId: user.id,
+                                        modelType: 'users'
+                                    }
+                                } });
+                            return entry !== null;
+                        }
+                    }
+                }
+            });
+        });
+        `;
+        await promises.writeFile(normalize(extensionContentFilePath), extensionContent, { encoding: "utf-8", flag: 'a+' });
+    } catch(error) {
+        console.log(`Error creating or writing to file at ${normalize(process.cwd() + '\\tripwire\\extension.js')}`)
+    }
+}
+
 const createSeederFile = async() => {
     try {
         console.log('Creating seed file.');
         const seederFilePath = process.cwd() + '\\prisma\\tripwireSeeder.js';
-        const seederContent = `"use strict";
-        Object.defineProperty(exports, "__esModule", { value: true });
-        const client_1 = require("@prisma/client");
-        const seed_1 = require("../tripwire/seed");
-        const prisma = new client_1.PrismaClient();
+        const seederContent = `import { PrismaClient } from '@prisma/client';
+        import { rolesAndPermissions } from '../tripwire/seed.js';
+        const prisma = new PrismaClient();
         async function main() {
-            const promises = seed_1.rolesAndPermissions.map(async ({ role }, index) => {
+            const promises = rolesAndPermissions.map(async ({ role }, index) => {
                 const { name, permissions } = role;
                 const newRole = await prisma.role.create({
                     data: {
                         name,
                         permissions: {
-                            create: permissions.map((permission, index) => { return { name: permission }; })
+                            create: permissions.map(permission => {
+                                return {
+                                    permission: {
+                                        create: {
+                                            name: permission
+                                        }
+                                    }
+                                };
+                            })
                         }
                     },
                     include: {
                         permissions: true
                     }
                 });
-                await prisma.roleHasPermission.createMany({
-                    data: newRole.permissions.map((permission) => {
-                        return {
-                            roleId: newRole.id,
-                            permissionId: permission.id
-                        };
-                    })
-                });
                 return newRole;
             });
             const addedData = await Promise.all(promises);
-            console.log('Roles added: ' + JSON.stringify(addedData, null, 2));
+            console.log('Successfully seeded the database.');
         }
         main();
         `;
@@ -55,14 +165,11 @@ const createSeederContentFile = async () => {
         console.log('Creating seeder configuration file.');
         const seederContentFilePath = process.cwd() + '\\tripwire\\seed.js';
         promises.mkdir(normalize(process.cwd() + '\\tripwire'));
-        const seederFileContent = `"use strict";
-        Object.defineProperty(exports, "__esModule", { value: true });
-        exports.rolesAndPermissions = void 0;
-        exports.rolesAndPermissions = [
+        const seederFileContent = `export const rolesAndPermissions = [
             {
                 role: {
-                    name: 'example_role',
-                    permissions: ['example_permission_A', 'example_permission_B']
+                    name: 'admin',
+                    permissions: ['mutate', 'revoke']
                 }
             }
         ];
@@ -105,52 +212,45 @@ const runPrismaDatabaseSeed = async() => {
 const addRolesAndPermissionsToSchema = async (model: string) => {
     let unProcessedString = `
     model Role {
-        id          Int      @id @default(autoincrement())
-        name        String   @unique
-        createdAt   DateTime @default(now())
-        updatedAt   DateTime @updatedAt
-        ${model}s       ${model}[]   // Many-to-many relationship with ${model}
-        permissions Permission[] // Many-to-many relationship with permissions
+      id BigInt @id @default(autoincrement())
+      name String @db.VarChar(255) @unique
+      createdAt DateTime @default(now())
+      updatedAt DateTime @updatedAt
+      models ModelHasRoles[]
+      permissions RoleHasPermission[]
     }
-      
+    
     model Permission {
-        id          Int      @id @default(autoincrement())
-        name        String   @unique
-        createdAt   DateTime @default(now())
-        updatedAt   DateTime @updatedAt
-        roles       Role[]   // Many-to-many relationship with roles
+      id BigInt @id @default(autoincrement())
+      name String @db.VarChar(255) @unique
+      createdAt DateTime @default(now())
+      updatedAt DateTime @updatedAt
+      models ModelHasPermission[]
+      roles RoleHasPermission[]
     }
-
-    model ModelHasRole {
-        modelId Int
-        roleId  Int
-      
-        model String // You may need to adjust this depending on your specific models
-        role  Role
-      
-        @@id([modelId, roleId])
-      }
-      
-      // ModelHasPermissions
-      model ModelHasPermission {
-        modelId      Int
-        permissionId Int
-      
-        model      String // You may need to adjust this depending on your specific models
-        permission Permission
-      
-        @@id([modelId, permissionId])
+    
+    model ModelHasRoles {
+      modelId BigInt
+      modelType String @db.VarChar(255)
+      roleId BigInt
+      role Role @relation(fields: [roleId], references: [id])
+      @@id([roleId, modelId, modelType])
     }
-      
-    // RoleHasPermissions
+    
+    model ModelHasPermission {
+      modelId BigInt
+      modelType String @db.VarChar(255)
+      permissionId BigInt
+      permission Permission @relation(fields: [permissionId], references: [id])
+      @@id([modelId, modelType, permissionId])
+    }
+    
     model RoleHasPermission {
-        roleId       Int
-        permissionId Int
-      
-        role      Role
-        permission Permission
-      
-        @@id([roleId, permissionId])
+      roleId BigInt
+      permissionId BigInt
+      role Role @relation(fields: [roleId], references: [id])
+      permission Permission @relation(fields: [permissionId], references: [id])
+      @@id([roleId, permissionId])
     }
     `;
     return unProcessedString.replace(EOL, '\n');
@@ -223,6 +323,7 @@ const processArgs = async () => {
             await runPrismaMigrate(args.model);
             await createSeederContentFile();
             await createSeederFile();
+            await createExtensionFile();
             await modifyPackageJson();
             await runPrismaDatabaseSeed();
         }
