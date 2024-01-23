@@ -17,7 +17,7 @@ Once installed, you can use Tripwire to generate the necessary files, migrations
 1. Run the Tripwire CLI with the model name you want to extend with roles and permissions:
 
 ```bash
-npx tripwire --model=<model_name>
+npx tripwire init --model=<model_name>
 ```
 
 Replace `<model_name>` with the name of your Prisma model.
