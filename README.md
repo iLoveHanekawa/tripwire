@@ -29,7 +29,7 @@ Replace `<model_name>` with the name of your Prisma model.
 ## Example
 
 ```bash
-npx tripwire --model=User
+npx tripwire init --model=User
 ```
 
 This command will extend the "User" model with roles and permissions, creating the necessary files and migrations.
